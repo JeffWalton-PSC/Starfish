@@ -26,7 +26,7 @@ dfe = dfe.rename(columns={'EVENT_LONG_NAME': 'course_name',
                           'DESCRIPTION': 'description'})
 
 sql_str = "SELECT * FROM SECTIONS WHERE " + \
-          "EVENT_SUB_TYPE NOT IN ('ADV', 'SI', 'LAB') " + \
+          "EVENT_SUB_TYPE NOT IN ('ADV') " + \
           f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
           "AND ACADEMIC_TERM NOT IN ('Fa', 'SP') "
 df_sections = pd.read_sql_query(sql_str, connection)
@@ -39,8 +39,11 @@ dfs = df_sections[['EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'ACADEMIC_YEAR',
 dfs = dfs.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'ACADEMIC_YEAR',
                        'ACADEMIC_TERM', 'SECTION', 'CREDITS'],
                       ascending=[True, True, True, False, True, True])
-dfs = dfs.drop_duplicates(['EVENT_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM'],
+dfs = dfs.drop_duplicates(['EVENT_ID', 'EVENT_SUB_TYPE', 'ACADEMIC_YEAR',
+                           'ACADEMIC_TERM', 'SECTION',
+                           ],
                           keep='first')
+
 dfs = dfs.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'ACADEMIC_YEAR',
                        'ACADEMIC_TERM', 'SECTION', 'CREDITS'],
                       ascending=[True, True, True, False, True, True])
