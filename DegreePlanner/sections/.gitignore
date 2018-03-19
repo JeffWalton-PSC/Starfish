@@ -1,0 +1,5 @@
+# ignore output files
+*.txt
+
+# ignore .ipynb_checkpoints directory
+.ipynb_checkpoints/
