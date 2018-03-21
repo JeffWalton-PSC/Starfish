@@ -60,9 +60,17 @@ df = df[~(df['course_id'].str.contains('REG', case=False))]
 df = df[~(df['course_id'].str.contains('STDY', case=False))]
 df = df[~(df['course_id'].str.contains('PRV TRAN', case=False))]
 
+
 df.loc[:, 'Level'] = '0' + df.loc[:, 'course_id'].str[-3:-2]
 df.loc[:, 'Level'] = df.loc[:, 'Level'].str.replace(' ', '')  # for MAT 98
-df.loc[:, 'course_id'] = df.loc[:, 'course_id'].str.replace(' ', '')
+
+crs_id = (lambda c: (str(c['course_id']).replace(' ', '') +
+                     str(c['EVENT_SUB_TYPE']).lower())
+          if ((c['EVENT_SUB_TYPE'] == 'LAB') | (c['EVENT_SUB_TYPE'] == 'SI'))
+          else (str(c['course_id']).replace(' ', ''))
+          )
+df.loc[:, 'course_id'] = df.apply(crs_id, axis=1)
+
 df.loc[:, 'description'] = (df.loc[:, 'description'].str.replace('\n', ' ')
                                                     .str.replace('\r', ' ')
                                                     .str.replace('\"\"', "\'")

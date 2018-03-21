@@ -14,100 +14,82 @@ connection = engine.connect()
 
 sections_begin_year = '2011'
 
-sql_str = "SELECT * FROM EVENT WHERE " + \
-          "EVENT_STATUS = 'A' " + \
-          "AND EVENT_TYPE = 'CLAS' "
-df_event = pd.read_sql_query(sql_str, connection)
-
-dfe = df_event[['EVENT_ID', 'EVENT_LONG_NAME', 'DESCRIPTION', ]]
-
-dfe = dfe.rename(columns={'EVENT_LONG_NAME': 'course_name',
-                          'EVENT_ID': 'course_id',
-                          'DESCRIPTION': 'description'})
-
 sql_str = "SELECT * FROM SECTIONS WHERE " + \
           "EVENT_SUB_TYPE NOT IN ('ADV') " + \
           f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
-          "AND ACADEMIC_TERM NOT IN ('Fa', 'SP') "
+          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') " + \
+          "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP'," + \
+          " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
 df_sections = pd.read_sql_query(sql_str, connection)
 
-dfs = df_sections[['EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'ACADEMIC_YEAR',
-                   'ACADEMIC_TERM', 'ACADEMIC_SESSION', 'CIP_CODE', 'CREDITS',
-                   'REVISION_DATE', 'REVISION_TIME',
-                   ]]
+df = df_sections[['EVENT_ID', 'EVENT_SUB_TYPE', 'EVENT_MED_NAME',
+                  'SECTION', 'CREDITS', 'MAX_PARTICIPANT',
+                  'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
+                  'START_DATE', 'END_DATE', 'CIP_CODE',
+                  'REVISION_DATE', 'REVISION_TIME',
+                  ]]
 
-dfs = dfs.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'ACADEMIC_YEAR',
-                       'ACADEMIC_TERM', 'SECTION'],
-                      ascending=[True, True, True, False, True])
-dfs = dfs.drop_duplicates(['EVENT_ID', 'EVENT_SUB_TYPE', 'ACADEMIC_YEAR',
-                           'ACADEMIC_TERM', 'SECTION',
-                           ],
-                          keep='first')
+df = df[~(df['EVENT_ID'].str.contains('REG', case=False))]
+df = df[~(df['EVENT_ID'].str.contains('STDY', case=False))]
 
-dfcat = dfs.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'CREDITS',
-                         'ACADEMIC_YEAR', 'ACADEMIC_TERM'],
-                        ascending=[True, True, True, True, False])
-dfcat = dfcat.drop_duplicates(['EVENT_ID', 'EVENT_SUB_TYPE', 'CREDITS'],
-                              keep='first')
+df = df.rename(columns={'EVENT_MED_NAME': 'course_section_name',
+                        'CREDITS': 'credit_hours',
+                        'MAX_PARTICIPANT': 'maximum_enrollment_count',
+                        'START_DATE': 'start_dt',
+                        'END_DATE': 'end_dt',
+                        'CIP_CODE': 'course_cip_code',
+                        })
 
-dfcat = dfcat.rename(columns={'EVENT_ID': 'course_id',
-                              'CREDITS': 'default_credit_hours',
-                              'CIP_CODE': 'course_cip_code'})
+df.loc[:, 'course_id'] = df.loc[:, 'EVENT_ID'].str.replace(' ', '')
 
-df = pd.merge(dfe, dfcat, on=['course_id'], how='left')
+df.loc[:, 'course_section_id'] = (df['EVENT_ID'] + '.' +
+                                  df['EVENT_SUB_TYPE'] + '.' +
+                                  df['ACADEMIC_YEAR'] + '.' +
+                                  df['ACADEMIC_TERM'].str.title() + '.' +
+                                  df['SECTION']
+                                  )
+df.loc[:, 'integration_id'] = df.loc[:, 'course_section_id']
 
-df = df[~(df['course_id'].str.contains('REG', case=False))]
-df = df[~(df['course_id'].str.contains('STDY', case=False))]
-df = df[~(df['course_id'].str.contains('PRV TRAN', case=False))]
+term_id = (lambda c: (c['ACADEMIC_YEAR'] + '.' +
+                      str(c['ACADEMIC_TERM']).title())
+           if (c['ACADEMIC_SESSION'] == 'MAIN')
+           else (c['ACADEMIC_YEAR'] + '.' +
+                 str(c['ACADEMIC_TERM']).title() + '.' +
+                 c['ACADEMIC_SESSION'])
+           )
+df.loc[:, 'term_id'] = df.apply(term_id, axis=1)
 
-df.loc[:, 'Level'] = '0' + df.loc[:, 'course_id'].str[-3:-2]
-df.loc[:, 'Level'] = df.loc[:, 'Level'].str.replace(' ', '')  # for MAT 98
-df.loc[:, 'course_id'] = df.loc[:, 'course_id'].str.replace(' ', '')
-df.loc[:, 'description'] = (df.loc[:, 'description'].str.replace('\n', ' ')
-                                                    .str.replace('\r', ' ')
-                                                    .str.replace('\"\"', "\'")
-                                                    .str.replace('\"', "\'")
-                            )
-
-df.loc[:, 'status'] = 'ACTIVE'
-
-df['ACADEMIC_YEAR'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce')
-                         .fillna(sections_begin_year).astype(np.int64))
-
-df.loc[:, 'EVENT_SUB_TYPE'] = df.loc[:, 'EVENT_SUB_TYPE'].fillna('')
-df.loc[:, 'ACADEMIC_YEAR'] = (df.loc[:, 'ACADEMIC_YEAR']
-                                .fillna(sections_begin_year))
-df.loc[:, 'ACADEMIC_TERM'] = df.loc[:, 'ACADEMIC_TERM'].fillna('FALL')
-
-cat_yr = (lambda c: c['ACADEMIC_YEAR'] if (c['ACADEMIC_TERM'] == 'FALL')
-          else (c['ACADEMIC_YEAR'] - 1))
+df['AY'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce')
+              .fillna(sections_begin_year).astype(np.int64))
+cat_yr = (lambda c: c['AY'] if (c['ACADEMIC_TERM'] == 'FALL')
+          else (c['AY'] - 1))
 df.loc[:, 'catalog_year'] = df.apply(cat_yr, axis=1)
 
-integ_id = (lambda c: (c['course_id'] + '.' + str(c['catalog_year']))
-            if (c['EVENT_SUB_TYPE'] == '')
-            else (c['course_id'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
-                  str(c['catalog_year'])))
-df.loc[:, 'integration_id'] = df.apply(integ_id, axis=1)
+crs_sect_delv = (lambda c: '03'
+                 if str(c['SECTION'])[:2] == 'HY'
+                 else ('02' if str(c['SECTION'])[:2] == 'ON'
+                       else '01')
+                 )
+df.loc[:, 'course_section_delivery'] = df.apply(crs_sect_delv, axis=1)
 
-df.loc[:, 'default_credit_hours'] = df.loc[:, 'default_credit_hours'].fillna(3)
+# read course_catalog.txt to find the correct catalog year
+dfcat = pd.read_csv('../course_catalog/course_catalog.txt')
 
-df = (df.sort_values(['integration_id', 'default_credit_hours'],
-                     ascending=[True, False])
-      .drop_duplicates(['integration_id'], keep='first')
-      )
 
-# set earlier catalog year courses to 'INACTIVE'
-max_cat_yr = df.groupby(['course_id'])['catalog_year'].max().reset_index()
-max_cat_yr = max_cat_yr.rename(columns={'catalog_year': 'max_cat_yr'})
-df = pd.merge(df, pd.DataFrame(max_cat_yr), on=['course_id'], how='left')
-df.loc[(df['catalog_year'] != df['max_cat_yr']), 'status'] = 'INACTIVE'
+crs_integ_id = (lambda c: (c['course_id'] + '.' + str(c['catalog_year']))
+                if (c['EVENT_SUB_TYPE'] == '')
+                else (c['course_id'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
+                      str(c['catalog_year'])))
+df.loc[:, 'course_integration_id'] =
 
-df = df.loc[:, ['integration_id', 'course_id', 'course_name',
-                'default_credit_hours', 'Level', 'description', 'status',
-                'catalog_year', ]]
+df = df.loc[:, ['integration_id', 'course_section_name', 'course_section_id',
+                'start_dt', 'end_dt', 'term_id', 'course_integration_id',
+                'course_section_delivery', 'maximum_enrollment_count',
+                'credit_hours',
+                ]]
 
 df = df.sort_values(['integration_id'])
 
 today = datetime.now().strftime('%Y%m%d')
-fn_output = f'{today}_course_catalog.txt'
+fn_output = f'{today}_sections.txt'
 df.to_csv(fn_output, index=False)
