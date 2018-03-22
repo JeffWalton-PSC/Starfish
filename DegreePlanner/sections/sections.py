@@ -90,10 +90,16 @@ dfcat = (dfcat[['course_id', 'integration_id']]
          .rename({'integration_id': 'cat_integ_id'}, axis='columns')
          )
 df = pd.merge(df, dfcat, on=['course_id'], how='left')
-df = (df.sort_values(['integration_id', 'course_integration_id'],
-                     ascending=[True, True]))
-# use catalog_year before course year
+
+# keep catalog_year before course year
 df = df.loc[(df['course_integration_id'] >= df['cat_integ_id'])]
+
+df = (df.sort_values(['course_section_id', 'course_integration_id'],
+                     ascending=[True, True])
+      .drop_duplicates(['course_section_id'], keep='last')
+      )
+
+df.loc[:, 'course_integration_id'] = df.loc[:, 'cat_integ_id']
 
 df = df.loc[:, ['integration_id', 'course_section_name', 'course_section_id',
                 'start_dt', 'end_dt', 'term_id', 'course_integration_id',
