@@ -101,6 +101,9 @@ df = (df.sort_values(['course_section_id', 'course_integration_id'],
 
 df.loc[:, 'course_integration_id'] = df.loc[:, 'cat_integ_id']
 
+# save sections for teaching.txt below
+dfs = df.copy()
+
 df = df.loc[:, ['integration_id', 'course_section_name', 'course_section_id',
                 'start_dt', 'end_dt', 'term_id', 'course_integration_id',
                 'course_section_delivery', 'maximum_enrollment_count',
@@ -112,3 +115,40 @@ df = df.sort_values(['integration_id'])
 today = datetime.now().strftime('%Y%m%d')
 fn_output = f'{today}_sections.txt'
 df.to_csv(fn_output, index=False)
+
+
+# generate teaching.txt
+sql_str = "SELECT * FROM SECTIONPER WHERE " + \
+          "EVENT_SUB_TYPE NOT IN ('ADV') " + \
+          f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
+          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') " + \
+          "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP'," + \
+          " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
+df_sectionper = pd.read_sql_query(sql_str, connection)
+
+sp = df_sectionper[['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
+                    'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION',
+                    'PERSON_CODE_ID',
+                    ]]
+
+dft = pd.merge(dfs, df_sectionper,
+               on=['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
+                   'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION'],
+               how='left')
+
+dft = (dft[['course_section_id', 'PERSON_CODE_ID']]
+       .rename({'course_section_id': 'course_section_integration_id',
+                'PERSON_CODE_ID': 'user_integration_id',
+                },
+               axis='columns')
+       )
+
+dft.loc[:, 'user_role'] = 'INSTRUCTOR'
+dft.loc[:, 'available_ind'] = '1'
+
+dft = dft.sort_values(['course_section_integration_id',
+                       'user_integration_id'])
+
+today = datetime.now().strftime('%Y%m%d')
+fn_output = f'{today}_teaching.txt'
+dft.to_csv(fn_output, index=False)
