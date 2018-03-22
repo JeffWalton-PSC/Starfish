@@ -76,9 +76,9 @@ df.loc[:, 'course_section_delivery'] = df.apply(crs_sect_delv, axis=1)
 dfcat = pd.read_csv('../course_catalog/course_catalog.txt')
 
 
-crs_integ_id = (lambda c: (c['course_id'] + '.' + str(c['catalog_year']))
+crs_integ_id = (lambda c: (c['EVENT_ID'] + '.' + str(c['catalog_year']))
                 if (c['EVENT_SUB_TYPE'] == '')
-                else (c['course_id'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
+                else (c['EVENT_ID'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
                       str(c['catalog_year'])))
 df.loc[:, 'course_integration_id'] =
 

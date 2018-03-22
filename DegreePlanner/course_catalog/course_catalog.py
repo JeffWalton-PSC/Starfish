@@ -22,13 +22,14 @@ df_event = pd.read_sql_query(sql_str, connection)
 dfe = df_event[['EVENT_ID', 'EVENT_LONG_NAME', 'DESCRIPTION', ]]
 
 dfe = dfe.rename(columns={'EVENT_LONG_NAME': 'course_name',
-                          'EVENT_ID': 'course_id',
                           'DESCRIPTION': 'description'})
 
 sql_str = "SELECT * FROM SECTIONS WHERE " + \
           "EVENT_SUB_TYPE NOT IN ('ADV') " + \
           f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
-          "AND ACADEMIC_TERM NOT IN ('Fa', 'SP') "
+          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') " + \
+          "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP'," + \
+          " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
 df_sections = pd.read_sql_query(sql_str, connection)
 
 dfs = df_sections[['EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'ACADEMIC_YEAR',
@@ -50,24 +51,23 @@ dfcat = dfs.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'CREDITS',
 dfcat = dfcat.drop_duplicates(['EVENT_ID', 'EVENT_SUB_TYPE', 'CREDITS'],
                               keep='first')
 
-dfcat = dfcat.rename(columns={'EVENT_ID': 'course_id',
-                              'CREDITS': 'default_credit_hours',
+dfcat = dfcat.rename(columns={'CREDITS': 'default_credit_hours',
                               'CIP_CODE': 'course_cip_code'})
 
-df = pd.merge(dfe, dfcat, on=['course_id'], how='left')
+df = pd.merge(dfe, dfcat, on=['EVENT_ID'], how='left')
 
-df = df[~(df['course_id'].str.contains('REG', case=False))]
-df = df[~(df['course_id'].str.contains('STDY', case=False))]
-df = df[~(df['course_id'].str.contains('PRV TRAN', case=False))]
+df = df[~(df['EVENT_ID'].str.contains('REG', case=False))]
+df = df[~(df['EVENT_ID'].str.contains('STDY', case=False))]
+df = df[~(df['EVENT_ID'].str.contains('PRV TRAN', case=False))]
 
 
-df.loc[:, 'Level'] = '0' + df.loc[:, 'course_id'].str[-3:-2]
+df.loc[:, 'Level'] = '0' + df.loc[:, 'EVENT_ID'].str[-3:-2]
 df.loc[:, 'Level'] = df.loc[:, 'Level'].str.replace(' ', '')  # for MAT 98
 
-crs_id = (lambda c: (str(c['course_id']).replace(' ', '') +
+crs_id = (lambda c: (str(c['EVENT_ID']).replace(' ', '') +
                      str(c['EVENT_SUB_TYPE']).lower())
           if ((c['EVENT_SUB_TYPE'] == 'LAB') | (c['EVENT_SUB_TYPE'] == 'SI'))
-          else (str(c['course_id']).replace(' ', ''))
+          else (str(c['EVENT_ID']).replace(' ', ''))
           )
 df.loc[:, 'course_id'] = df.apply(crs_id, axis=1)
 
@@ -91,9 +91,9 @@ cat_yr = (lambda c: c['ACADEMIC_YEAR'] if (c['ACADEMIC_TERM'] == 'FALL')
           else (c['ACADEMIC_YEAR'] - 1))
 df.loc[:, 'catalog_year'] = df.apply(cat_yr, axis=1)
 
-integ_id = (lambda c: (c['course_id'] + '.' + str(c['catalog_year']))
+integ_id = (lambda c: (c['EVENT_ID'] + '.' + str(c['catalog_year']))
             if (c['EVENT_SUB_TYPE'] == '')
-            else (c['course_id'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
+            else (c['EVENT_ID'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
                   str(c['catalog_year'])))
 df.loc[:, 'integration_id'] = df.apply(integ_id, axis=1)
 
