@@ -40,7 +40,12 @@ df = df.rename(columns={'EVENT_MED_NAME': 'course_section_name',
                         'CIP_CODE': 'course_cip_code',
                         })
 
-df.loc[:, 'course_id'] = df.loc[:, 'EVENT_ID'].str.replace(' ', '')
+crs_id = (lambda c: (str(c['EVENT_ID']).replace(' ', '') +
+                     str(c['EVENT_SUB_TYPE']).lower())
+          if ((c['EVENT_SUB_TYPE'] == 'LAB') | (c['EVENT_SUB_TYPE'] == 'SI'))
+          else (str(c['EVENT_ID']).replace(' ', ''))
+          )
+df.loc[:, 'course_id'] = df.apply(crs_id, axis=1)
 
 df.loc[:, 'course_section_id'] = (df['EVENT_ID'] + '.' +
                                   df['EVENT_SUB_TYPE'] + '.' +
@@ -59,6 +64,7 @@ term_id = (lambda c: (c['ACADEMIC_YEAR'] + '.' +
            )
 df.loc[:, 'term_id'] = df.apply(term_id, axis=1)
 
+# temporarily use academiic year as catalog year
 df['AY'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce')
               .fillna(sections_begin_year).astype(np.int64))
 cat_yr = (lambda c: c['AY'] if (c['ACADEMIC_TERM'] == 'FALL')
@@ -72,15 +78,22 @@ crs_sect_delv = (lambda c: '03'
                  )
 df.loc[:, 'course_section_delivery'] = df.apply(crs_sect_delv, axis=1)
 
-# read course_catalog.txt to find the correct catalog year
-dfcat = pd.read_csv('../course_catalog/course_catalog.txt')
-
-
 crs_integ_id = (lambda c: (c['EVENT_ID'] + '.' + str(c['catalog_year']))
                 if (c['EVENT_SUB_TYPE'] == '')
                 else (c['EVENT_ID'] + '.' + c['EVENT_SUB_TYPE'] + '.' +
                       str(c['catalog_year'])))
-df.loc[:, 'course_integration_id'] =
+df.loc[:, 'course_integration_id'] = df.apply(crs_integ_id, axis=1)
+
+# read course_catalog.txt to find the correct catalog year
+dfcat = pd.read_csv('../course_catalog/course_catalog.txt')
+dfcat = (dfcat[['course_id', 'integration_id']]
+         .rename({'integration_id': 'cat_integ_id'}, axis='columns')
+         )
+df = pd.merge(df, dfcat, on=['course_id'], how='left')
+df = (df.sort_values(['integration_id', 'course_integration_id'],
+                     ascending=[True, True]))
+# use catalog_year before course year
+df = df.loc[(df['course_integration_id'] >= df['cat_integ_id'])]
 
 df = df.loc[:, ['integration_id', 'course_section_name', 'course_section_id',
                 'start_dt', 'end_dt', 'term_id', 'course_integration_id',
