@@ -136,6 +136,8 @@ dft = pd.merge(dfs, df_sectionper,
                    'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION'],
                how='left')
 
+dft = dft[~dft['PERSON_CODE_ID'].isnull()]
+
 dft = (dft[['course_section_id', 'PERSON_CODE_ID']]
        .rename({'course_section_id': 'course_section_integration_id',
                 'PERSON_CODE_ID': 'user_integration_id',
