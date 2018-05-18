@@ -4,13 +4,8 @@ import os
 from datetime import date, datetime
 from sqlalchemy import create_engine
 
-# local connection information
-db_user = os.environ.get('DB_USER')
-db_pass = os.environ.get('DB_PASS')
-engine = create_engine(f'mssql+pyodbc://{db_user}:{db_pass}' +
-                       '@PSC-SQLProd/Campus6?' +
-                       'driver=ODBC+Driver+13+for+SQL+Server')
-connection = engine.connect()
+import local_db
+connection = local_db.connection()
 
 sections_begin_year = '2011'
 
@@ -65,7 +60,7 @@ df.loc[:, 'Level'] = '0' + df.loc[:, 'EVENT_ID'].str[-3:-2]
 df.loc[:, 'Level'] = df.loc[:, 'Level'].str.replace(' ', '')  # for MAT 98
 
 crs_id = (lambda c: (str(c['EVENT_ID']).replace(' ', '') +
-                     str(c['EVENT_SUB_TYPE']).lower())
+                     str(c['EVENT_SUB_TYPE']).upper())
           if ((c['EVENT_SUB_TYPE'] == 'LAB') | (c['EVENT_SUB_TYPE'] == 'SI'))
           else (str(c['EVENT_ID']).replace(' ', ''))
           )
