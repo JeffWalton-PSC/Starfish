@@ -1,16 +1,10 @@
 import numpy as np
 import pandas as pd
-import os
 from datetime import date, datetime
-from sqlalchemy import create_engine
 
 # local connection information
-db_user = os.environ.get('DB_USER')
-db_pass = os.environ.get('DB_PASS')
-engine = create_engine(f'mssql+pyodbc://{db_user}:{db_pass}' +
-                       '@PSC-SQLProd/Campus6?' +
-                       'driver=ODBC+Driver+13+for+SQL+Server')
-connection = engine.connect()
+import local_db
+connection = local_db.connection()
 
 sections_begin_year = '2011'
 
@@ -41,7 +35,7 @@ df = df.rename(columns={'EVENT_MED_NAME': 'course_section_name',
                         })
 
 crs_id = (lambda c: (str(c['EVENT_ID']).replace(' ', '') +
-                     str(c['EVENT_SUB_TYPE']).lower())
+                     str(c['EVENT_SUB_TYPE']).upper())
           if ((c['EVENT_SUB_TYPE'] == 'LAB') | (c['EVENT_SUB_TYPE'] == 'SI'))
           else (str(c['EVENT_ID']).replace(' ', ''))
           )
@@ -64,7 +58,7 @@ term_id = (lambda c: (c['ACADEMIC_YEAR'] + '.' +
            )
 df.loc[:, 'term_id'] = df.apply(term_id, axis=1)
 
-# temporarily use academiic year as catalog year
+# temporarily use academic year as catalog year
 df['AY'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce')
               .fillna(sections_begin_year).astype(np.int64))
 cat_yr = (lambda c: c['AY'] if (c['ACADEMIC_TERM'] == 'FALL')

@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
-import os
 from datetime import date, datetime
-from sqlalchemy import create_engine
 
+# local connection information
 import local_db
 connection = local_db.connection()
 
