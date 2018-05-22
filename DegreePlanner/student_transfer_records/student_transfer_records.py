@@ -54,11 +54,17 @@ df.loc[:, 'ag_status'] = 'TRANSFER'
 
 df = df.rename(columns={'PEOPLE_CODE_ID': 'student_integration_id',
                         'CREDIT': 'credits',
-                        'FINAL_GRADE': 'ag_grade',
                         'EVENT_MED_NAME': 'course_title',
                         'ACADEMIC_YEAR': 'term_year',
                         'ACADEMIC_TERM': 'term_season',
                        })
+
+tr_grade = (lambda c: 'P'
+            if (c['FINAL_GRADE'] == 'TR')
+            else 'NG'
+           )
+df.loc[:, 'ag_grade'] = df.apply(tr_grade, axis=1)
+df = df[~df['ag_grade'].isnull()]
 
 df = df.loc[:, ['student_integration_id', 'transfer_course_number',
                 'transfer_course_section_number',
