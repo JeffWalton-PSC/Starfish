@@ -6,35 +6,46 @@ from datetime import date
 import local_db
 connection = local_db.connection()
 
+# utility functions
+import util
+
 today = date.today()
 today_str = today.strftime('%Y%m%d')
 
-sql_str = """
+sql_str = "SELECT PEOPLE_CODE_ID, TEST_ID, TEST_TYPE, " + \
+          "CONVERTED_SCORE, TEST_DATE " + \
+          "FROM TESTSCORES WHERE " + \
+          "TEST_ID = 'ACC' " + \
+          "AND ( TEST_TYPE = 'MATH' " + \
+          "OR TEST_TYPE = 'ENGL' ) "
+df = pd.read_sql_query(sql_str, connection, parse_dates=['TEST_DATE'])
 
-SELECT [PEOPLE_CODE_ID] as student_integration_id, 'ACCUPLACER_MATH' as 'test_id', CONVERTED_SCORE as numeric_score, CONVERT(date, [TEST_DATE]) as date_taken
-     
-  FROM [Campus6].[dbo].[TESTSCORES]
-  where TEST_ID = 'ACC'
-  and TEST_TYPE = 'MATH' 
+df  = df[df['TEST_DATE'].notnull()]
 
-UNION
-SELECT [PEOPLE_CODE_ID] as student_integration_id, 'ACCUPLACER_ENGLISH' as 'test_id', CONVERTED_SCORE as numeric_score, CONVERT(date, [TEST_DATE]) as date_taken
-     
-  FROM [Campus6].[dbo].[TESTSCORES]
-  where TEST_ID = 'ACC'
-  and TEST_TYPE = 'ENGL'
+df.loc[(df['TEST_TYPE'] == 'MATH'), 'test_id'] = 'ACCUPLACER_MATH'
+df.loc[(df['TEST_TYPE'] == 'ENGL'), 'test_id'] = 'ACCUPLACER_ENGLISH'
 
+df['numeric_score'] = df['CONVERTED_SCORE'].dropna().apply(np.int64)
 
-  order by student_integration_id
+df['date_taken'] = df['TEST_DATE'].dt.strftime('%Y-%m-%d')
 
+# keep records for active students
+df = util.apply_active(in_df=df)
 
-"""
+df = df.rename(columns={
+                        'PEOPLE_CODE_ID': 'student_integration_id',
+                       })
 
-df = pd.read_sql_query(sql_str, connection)
+df = df.loc[:, ['student_integration_id', 'test_id',
+                'numeric_score', 'date_taken', 
+               ]]
 
-
-
-df['numeric_score'] = df['numeric_score'].dropna().apply(np.int64)
+df = (df.sort_values(['student_integration_id', 
+                      'test_id', 'numeric_score'])
+        .drop_duplicates(['student_integration_id', 
+                          'test_id'],
+                         keep='last')
+     )
 
 fn_output = f'{today_str}_student_test_results.txt'
 df.to_csv(fn_output, index=False)
