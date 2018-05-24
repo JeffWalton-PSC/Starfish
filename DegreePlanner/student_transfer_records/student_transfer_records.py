@@ -6,6 +6,9 @@ from datetime import date
 import local_db
 connection = local_db.connection()
 
+# utility functions
+import util
+
 today = date.today()
 today_str = today.strftime('%Y%m%d')
 
@@ -19,17 +22,8 @@ df_td = df_td[['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SES
              'REFERENCE_EVENT_ID', 'REFERENCE_SUB_TYPE', 
              ]]
 
-# create active student list from 2-year rolling window
-two_years_ago = today.year - 2
-sql_str = "SELECT PEOPLE_CODE_ID FROM ACADEMIC WHERE " + \
-          f"ACADEMIC_YEAR > '{two_years_ago}' " + \
-          "AND PRIMARY_FLAG = 'Y' " + \
-          "AND CURRICULUM NOT IN ('ADVST') " + \
-          "AND GRADUATED NOT IN ('G') "
-active = pd.read_sql_query(sql_str, connection)
-active = active.drop_duplicates(['PEOPLE_CODE_ID'])
 # keep transfer records for active students
-df = pd.merge(df_td, active, how='inner', on='PEOPLE_CODE_ID')
+df = util.apply_active(in_df=df_td)
 
 crs_id = (lambda c: (str(c['EVENT_ID']).replace(' ', '') +
                      str(c['EVENT_SUB_TYPE']).upper())
