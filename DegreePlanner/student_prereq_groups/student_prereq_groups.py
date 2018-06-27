@@ -6,9 +6,8 @@ from datetime import date
 import local_db
 connection = local_db.connection()
 
-# local connection information
-import local_db
-connection = local_db.connection()
+# utility functions
+import util
 
 today = date.today()
 today_str = today.strftime('%Y%m%d')
