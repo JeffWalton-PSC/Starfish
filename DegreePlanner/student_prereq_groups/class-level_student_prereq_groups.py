@@ -32,7 +32,7 @@ sql_str = "SELECT PEOPLE_CODE_ID, ACADEMIC_YEAR, ACADEMIC_TERM, ACADEMIC_SESSION
 df_tgpa = pd.read_sql_query(sql_str, connection)
 
 df_tgpa = df_tgpa[['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 
-                 'RECORD_TYPE',
+                 'RECORD_TYPE', 'TOTAL_CREDITS',
                  ]]
 
 df = pd.merge(df_aca, df_tgpa, 
@@ -77,5 +77,5 @@ df = (df.sort_values(['student_integration_id',
                          keep='last')
      )
 
-fn_output = f'{today_str}_student_prereq_groups.txt'
+fn_output = f'{today_str}_class-level_student_prereq_groups.txt'
 df.to_csv(fn_output, index=False)
