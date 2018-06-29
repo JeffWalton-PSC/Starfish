@@ -1,43 +1,37 @@
 # Outputs group file for students with greater than a 2.0 GPA
 
 import pandas as pd
-import os
-from datetime import date, datetime
-from sqlalchemy import create_engine
-
-begin_academic_year = '2011'
+from datetime import date
 
 # local connection information
-db_user = os.environ.get('DB_USER')
-db_pass = os.environ.get('DB_PASS')
-engine = create_engine(f'mssql+pyodbc://{db_user}:{db_pass}' +
-                       '@PSC-SQLProd/Campus6?' +
-                       'driver=ODBC+Driver+13+for+SQL+Server')
-connection = engine.connect()
+import local_db
+connection = local_db.connection()
 
-sql_str = """
-SELECT [PEOPLE_CODE_ID]
-      ,[ACADEMIC_YEAR]
-      ,[ACADEMIC_TERM]
-      ,[ACADEMIC_SESSION]
-      ,[RECORD_TYPE]
-      ,[GPA]
-FROM [Campus6].[dbo].[TRANSCRIPTGPA]
-"""
-df = pd.read_sql_query(sql_str, connection)
+# utility functions
+import util
 
-df = df[df['ACADEMIC_YEAR'] >= begin_academic_year]
+today = date.today()
+today_str = today.strftime('%Y%m%d')
 
-# Rename people_code_id to student_integration_id
-df = df.rename(columns={'PEOPLE_CODE_ID': 'student_integration_id'})
+sql_str = "SELECT PEOPLE_CODE_ID, ACADEMIC_YEAR, ACADEMIC_TERM, ACADEMIC_SESSION, " + \
+          "RECORD_TYPE, TOTAL_CREDITS, GPA " + \
+          "FROM TRANSCRIPTGPA WHERE " + \
+          "RECORD_TYPE = 'O' " + \
+          "AND TOTAL_CREDITS >= 0 "
+df_tgpa = pd.read_sql_query(sql_str, connection)
+
+
+# keep records for active students
+df = util.apply_active(in_df=df_tgpa)
 
 # filter results to only have cumulative GPA's equal to or above a 2.0,
-#                   have a record type of 'O' and Fall, Spring or Summer term
-df = df[df['GPA'] >= 2]
-df = df[df['RECORD_TYPE'] == 'O']
+#                   and Fall, Spring or Summer term
+df = df[(~df['GPA'].isnull())]
+df = df[(df['GPA'] >= 2)]
 df = df[df['ACADEMIC_TERM'].isin(['SPRING', 'SUMMER', 'FALL'])]
 
 # find the latest year
+df = df[(~df['ACADEMIC_YEAR'].isnull())]
 df['ACADEMIC_YEAR'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce'))
 df_seq = pd.DataFrame([{'term': 'SPRING', 'seq': 1},
                        {'term': 'SUMMER', 'seq': 2},
@@ -45,17 +39,27 @@ df_seq = pd.DataFrame([{'term': 'SPRING', 'seq': 1},
 df = pd.merge(df, df_seq, left_on='ACADEMIC_TERM', right_on='term', how='left')
 df['term_seq'] = df['ACADEMIC_YEAR'] * 100 + df['seq']
 df = (df.loc[df.reset_index()
-               .groupby(['student_integration_id'])['term_seq']
+               .groupby(['PEOPLE_CODE_ID'])['term_seq']
                .idxmax()])
+
+# Rename people_code_id to student_integration_id
+df = df.rename(columns={
+                        'PEOPLE_CODE_ID': 'student_integration_id',
+                       })
 
 # create prereq group identifier
 df['prereq_group_identifier'] = 'GPA_GT_2.0'
 
 # columns to keep
-df = df.loc[:, ['student_integration_id', 'prereq_group_identifier']]
+df = df.loc[:, ['student_integration_id', 'prereq_group_identifier',
+               ]]
 
-df = df.drop_duplicates(['student_integration_id'], keep='first')
+df = (df.sort_values(['student_integration_id', 
+                      'prereq_group_identifier'])
+        .drop_duplicates(['student_integration_id', 
+                          'prereq_group_identifier'],
+                         keep='last')
+     )
 
-today = datetime.now().strftime('%Y%m%d')
-fn_output = today + '_student_higherthan20gpa_student_prereq_groups.txt'
+fn_output = f'{today_str}_higherthan20gpa_student_prereq_groups.txt'
 df.to_csv(fn_output, index=False)

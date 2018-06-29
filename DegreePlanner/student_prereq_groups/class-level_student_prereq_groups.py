@@ -1,4 +1,7 @@
-import numpy as np
+"""
+Data file for Starfish's DegreePlanner.
+Creates pre-requisite groups based on class level (Freshman, Sophomore, Junior, Senior).
+"""
 import pandas as pd
 from datetime import date
 
@@ -12,6 +15,30 @@ import util
 today = date.today()
 today_str = today.strftime('%Y%m%d')
 
+
+# find the latest year_term
+def latest_year_term(df):
+    """
+    Return df with most recent records based on ACADEMIC_YEAR andACADEMIC_TERM
+    """
+    df = df.copy()
+    df = df[(df['ACADEMIC_YEAR'].notnull()) & (df['ACADEMIC_YEAR'].str.isnumeric())]
+    df['ACADEMIC_YEAR'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce'))
+    df_seq = pd.DataFrame([
+                           {'term': 'Transfer', 'seq': 0},
+                           {'term': 'SPRING', 'seq': 1},
+                           {'term': 'SUMMER', 'seq': 2},
+                           {'term': 'FALL', 'seq': 3}])
+    df = pd.merge(df, df_seq, left_on='ACADEMIC_TERM', right_on='term', how='left')
+    df['term_seq'] = df['ACADEMIC_YEAR'] * 100 + df['seq']
+
+    d=df.reset_index().groupby(['PEOPLE_CODE_ID'])['term_seq'].idxmax()
+    
+    df = df.loc[df.reset_index().groupby(['PEOPLE_CODE_ID'])['term_seq'].idxmax()]
+
+    return df
+
+
 sql_str = "SELECT PEOPLE_CODE_ID, ACADEMIC_YEAR, ACADEMIC_TERM, ACADEMIC_SESSION, " + \
           "CREDITS, PRIMARY_FLAG, CLASS_LEVEL " + \
           "FROM ACADEMIC WHERE " + \
@@ -24,6 +51,8 @@ df_aca = df_aca[['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_S
                  'CREDITS', 'PRIMARY_FLAG', 'CLASS_LEVEL', 
                  ]]
 
+df_aca = latest_year_term(df_aca)
+
 sql_str = "SELECT PEOPLE_CODE_ID, ACADEMIC_YEAR, ACADEMIC_TERM, ACADEMIC_SESSION, " + \
           "RECORD_TYPE, TOTAL_CREDITS, GPA " + \
           "FROM TRANSCRIPTGPA WHERE " + \
@@ -35,27 +64,14 @@ df_tgpa = df_tgpa[['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC
                  'RECORD_TYPE', 'TOTAL_CREDITS',
                  ]]
 
+df_tgpa = latest_year_term(df_tgpa)
+
 df = pd.merge(df_aca, df_tgpa, 
-              on=['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION'],
+              on=['PEOPLE_CODE_ID'],
               how='left')
 
 # keep records for active students
 df = util.apply_active(in_df=df)
-
-# drop not completed terms
-df = df[(~df['TOTAL_CREDITS'].isnull())]
-
-# find the latest year
-df = df[(~df['ACADEMIC_YEAR'].isnull())]
-df['ACADEMIC_YEAR'] = (pd.to_numeric(df['ACADEMIC_YEAR'], errors='coerce'))
-df_seq = pd.DataFrame([{'term': 'SPRING', 'seq': 1},
-                       {'term': 'SUMMER', 'seq': 2},
-                       {'term': 'FALL', 'seq': 3}])
-df = pd.merge(df, df_seq, left_on='ACADEMIC_TERM', right_on='term', how='left')
-df['term_seq'] = df['ACADEMIC_YEAR'] * 100 + df['seq']
-df = (df.loc[df.reset_index()
-               .groupby(['PEOPLE_CODE_ID'])['term_seq']
-               .idxmax()])
 
 df.loc[:,'prereq_group_identifier'] = 'FRESHMAN'
 df.loc[(df['TOTAL_CREDITS'] >= 30),'prereq_group_identifier'] = 'SOPHOMORE'
