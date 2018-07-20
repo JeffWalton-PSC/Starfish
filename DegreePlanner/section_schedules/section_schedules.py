@@ -1,6 +1,10 @@
 import numpy as np
 import pandas as pd
 from datetime import date
+from pathlib import Path
+
+output_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\section_schedules')
+fn_output = output_path / 'section_schedules.txt'
 
 # local connection information
 import local_db
@@ -81,5 +85,4 @@ df = (df.sort_values(['section_integration_id',
                          keep='last')
      )
 
-fn_output = f'{today_str}_section_schedules.txt'
 df.to_csv(fn_output, index=False)

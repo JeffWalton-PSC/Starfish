@@ -4,6 +4,10 @@ Creates pre-requisite groups based on class level (Freshman, Sophomore, Junior, 
 """
 import pandas as pd
 from datetime import date
+from pathlib import Path
+
+output_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\student_prereq_groups')
+fn_output = output_path / 'class-level_student_prereq_groups'
 
 # local connection information
 import local_db
@@ -93,5 +97,4 @@ df = (df.sort_values(['student_integration_id',
                          keep='last')
      )
 
-fn_output = f'{today_str}_class-level_student_prereq_groups.txt'
 df.to_csv(fn_output, index=False)

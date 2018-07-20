@@ -1,6 +1,11 @@
 import numpy as np
 import pandas as pd
 from datetime import date, datetime
+from pathlib import Path
+
+output_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\sections')
+sfn_output = output_path / 'sections.txt'
+tfn_output = output_path / 'teaching.txt'
 
 # local connection information
 import local_db
@@ -106,9 +111,7 @@ df = df.loc[:, ['integration_id', 'course_section_name', 'course_section_id',
 
 df = df.sort_values(['integration_id'])
 
-today = datetime.now().strftime('%Y%m%d')
-fn_output = f'{today}_sections.txt'
-df.to_csv(fn_output, index=False)
+df.to_csv(sfn_output, index=False)
 
 
 # generate teaching.txt
@@ -145,6 +148,4 @@ dft.loc[:, 'available_ind'] = '1'
 dft = dft.sort_values(['course_section_integration_id',
                        'user_integration_id'])
 
-today = datetime.now().strftime('%Y%m%d')
-fn_output = f'{today}_teaching.txt'
-dft.to_csv(fn_output, index=False)
+dft.to_csv(tfn_output, index=False)

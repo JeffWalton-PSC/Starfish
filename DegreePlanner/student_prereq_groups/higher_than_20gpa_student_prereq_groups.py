@@ -1,7 +1,13 @@
-# Outputs group file for students with greater than a 2.0 GPA
+"""
+Outputs group file for students with greater than a 2.0 GPA
+"""
 
 import pandas as pd
 from datetime import date
+from pathlib import Path
+
+output_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\student_prereq_groups')
+fn_output = output_path / 'higherthan20gpa_student_prereq_groups.txt'
 
 # local connection information
 import local_db
@@ -61,5 +67,4 @@ df = (df.sort_values(['student_integration_id',
                          keep='last')
      )
 
-fn_output = f'{today_str}_higherthan20gpa_student_prereq_groups.txt'
 df.to_csv(fn_output, index=False)
