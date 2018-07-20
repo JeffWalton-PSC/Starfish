@@ -7,7 +7,7 @@ from datetime import date
 from pathlib import Path
 
 output_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\student_prereq_groups')
-fn_output = output_path / 'class-level_student_prereq_groups'
+fn_output = output_path / 'class-level_student_prereq_groups.txt'
 
 # local connection information
 import local_db
