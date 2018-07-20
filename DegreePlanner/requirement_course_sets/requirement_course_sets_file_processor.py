@@ -18,18 +18,24 @@ Abreviation needs be less than 17
 import pandas as pd
 import numpy as np
 import datetime
+from pathlib import Path
 
-#EDIT THESE VARIABLES APPROPRIATELY
+
+# EDIT THESE VARIABLES APPROPRIATELY
 
 today = datetime.datetime.now().strftime('%Y%m%d')
-#catalog_year uses catalog_year in the naming convention of the files to keep them segregated
+
+path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\requirement_course_sets')
+
+# catalog_year uses catalog_year in the naming convention of the files to keep them segregated
 catalog_year = '2017'
-#import_csv_file - this file is produced by exporting the appropriate csv from genedcourses.xlsx
-#import_csv_file = '\\\\psc-data\\E\\Applications\\Starfish\Files\\workingfiles\\requirement_course_sets\\' + catalog_year + '_genedcourses.csv'
-import_csv_file = catalog_year + '_genedcourses.csv'
-#output_csv_file - this file is what is produced to be provided to starfish
-#output_csv_file = '\\\\psc-data\\E\\Applications\\Starfish\Files\\workingfiles\\requirement_course_sets\\' + today + '_' + catalog_year + '_requirement_course_sets.txt'
-output_csv_file = today + '_' + catalog_year + '_requirement_course_sets.txt'
+
+# import_csv_file - this file is produced by exporting the appropriate csv from genedcourses.xlsx
+import_csv_file = path / (catalog_year + '_genedcourses.csv')
+
+# output_csv_file - this file is what is produced to be provided to starfish
+#output_csv_file = path / (today + '_' + catalog_year + '_requirement_course_sets.txt')
+output_csv_file = path / (catalog_year + '_requirement_course_sets.txt')
 
 
 set_titles = {
@@ -133,7 +139,7 @@ with open (import_csv_file) as csvfile:
         if count == 0:
             for x in range(0, len(row)):
                 abbreviation_names.append(row[x])
-            print(abbreviation_names)
+            #print(abbreviation_names)
         else:
             CourseID = row[1].replace(' ','')
             for x in range(0, len(row)):
@@ -147,7 +153,7 @@ df = pd.DataFrame.from_records(lines, columns = headers)
 #print df
 
 sorteddf = df.sort_values(by=['set_abbreviation','set_title'])
-print(sorteddf)
+#print(sorteddf)
 
 sorteddf.to_csv(output_csv_file, sep=',', index = False)
 
@@ -156,4 +162,4 @@ sorteddf.to_csv(output_csv_file, sep=',', index = False)
 #    writer = csv.writer(OutputFile)
 #    writer.writerows(lines)
          
-print("Writing complete")
+#print("Writing complete")

@@ -6,6 +6,8 @@ from pathlib import Path
 output_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\sections')
 sfn_output = output_path / 'sections.txt'
 tfn_output = output_path / 'teaching.txt'
+catalog_path = Path(r'\\psc-data\E\Applications\Starfish\Files\workingfiles\course_catalog')
+catalog_fn = catalog_path / 'course_catalog.txt'
 
 # local connection information
 import local_db
@@ -84,7 +86,7 @@ crs_integ_id = (lambda c: (c['EVENT_ID'] + '.' + str(c['catalog_year']))
 df.loc[:, 'course_integration_id'] = df.apply(crs_integ_id, axis=1)
 
 # read course_catalog.txt to find the correct catalog year
-dfcat = pd.read_csv('../course_catalog/course_catalog.txt')
+dfcat = pd.read_csv(catalog_fn)
 dfcat = (dfcat[['course_id', 'integration_id']]
          .rename({'integration_id': 'cat_integ_id'}, axis='columns')
          )
