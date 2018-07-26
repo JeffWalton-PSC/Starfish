@@ -119,7 +119,9 @@ set_titles = {
     'IS_RECR':'Integrative Students: RECR Program Options',
     'IS_SCWL':'Integrative Students: SCWL Program Options',
     'IS_AALM':'Integrative Students: AALM Program Options',
-    'IS_SURV':'Integrative Students: SURV Program Options'
+    'IS_SURV':'Integrative Students: SURV Program Options',
+    'HRTM_SPAN':'HRTM Language Sequence - Spanish',
+    'HRTM_FREN':'HRTM Language Sequence - French'
 
 
 	
@@ -162,4 +164,4 @@ sorteddf.to_csv(output_csv_file, sep=',', index = False)
 #    writer = csv.writer(OutputFile)
 #    writer.writerows(lines)
          
-#print("Writing complete")
+print("Writing complete")
