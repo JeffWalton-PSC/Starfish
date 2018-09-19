@@ -126,8 +126,11 @@ set_titles = {
     'SCM_PRAC': 'SCM: Sustainable Communities Minor Cluster',
     'SCM_CLUSTER': 'SCM: Sustainable Communities Minor - Practitioner Courses',
     'CAPSTONE': 'Capstone Courses',
-	'HHAE_ECO':'Human Health - Ecosystem Processes Cluster',
-	'HHAE_POLICY':'Human Health - Policy Cluster'
+    'HHAE_ECO':'Human Health - Ecosystem Processes Cluster',
+    'HHAE_POLICY':'Human Health - Policy Cluster',
+    'MNGT_CORE':'Management Core',
+    'MNGT_ENTR':'Entrepreneurship Core',
+    'MNGT_SPORTS':'Sports and Event Management Core',
     }
 
 
