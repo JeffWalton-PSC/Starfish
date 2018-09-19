@@ -45,7 +45,7 @@ dfcat = dfs.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'CREDITS',
 dfcat = dfcat.drop_duplicates(['EVENT_ID', 'EVENT_SUB_TYPE', 'CREDITS'],
                               keep='first')
 
-dfcat = dfcat.rename(columns={'CREDITS': 'min_credit_hours',
+dfcat = dfcat.rename(columns={'CREDITS': 'default_credit_hours',
                               'CIP_CODE': 'course_cip_code'})
 
 df = pd.merge(dfe, dfcat, on=['EVENT_ID'], how='left')
@@ -91,10 +91,9 @@ integ_id = (lambda c: (c['EVENT_ID'] + '.' + str(c['catalog_year']))
                   str(c['catalog_year'])))
 df.loc[:, 'integration_id'] = df.apply(integ_id, axis=1)
 
-df.loc[:, 'min_credit_hours'] = df.loc[:, 'min_credit_hours'].fillna(3)
-df.loc[:, 'max_credit_hours'] = df.loc[:, 'min_credit_hours']
+df.loc[:, 'default_credit_hours'] = df.loc[:, 'default_credit_hours'].fillna(3)
 
-df = (df.sort_values(['integration_id', 'min_credit_hours'],
+df = (df.sort_values(['integration_id', 'default_credit_hours'],
                      ascending=[True, False])
       .drop_duplicates(['integration_id'], keep='first')
       )
@@ -106,8 +105,8 @@ df = pd.merge(df, pd.DataFrame(max_cat_yr), on=['course_id'], how='left')
 df.loc[(df['catalog_year'] != df['max_cat_yr']), 'status'] = 'INACTIVE'
 
 df = df.loc[:, ['integration_id', 'course_id', 'course_name',
-                'Level', 'min_credit_hours', 'max_credit_hours', 'description',
-                'status', 'catalog_year', ]]
+                'default_credit_hours', 'Level', 'description', 'status',
+                'catalog_year', ]]
 
 df = df.sort_values(['integration_id'])
 
