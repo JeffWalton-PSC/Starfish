@@ -120,13 +120,15 @@ set_titles = {
     'IS_SCWL':'Integrative Students: SCWL Program Options',
     'IS_AALM':'Integrative Students: AALM Program Options',
     'IS_SURV':'Integrative Students: SURV Program Options',
-    'HRTM_SPAN':'HRTM Language Sequence - Spanish',
-    'HRTM_FREN':'HRTM Language Sequence - French'
-
-
-	
-}
-
+    'HRTM_SPAN':'Language Sequence - Spanish',
+    'HRTM_FREN':'Language Sequence - French',
+    'HRTM_ITAL':'Language Sequence - Italian',
+    'SCM_PRAC': 'SCM: Sustainable Communities Minor Cluster',
+    'SCM_CLUSTER': 'SCM: Sustainable Communities Minor - Practitioner Courses',
+    'CAPSTONE': 'Capstone Courses',
+	'HHAE_ECO':'Human Health - Ecosystem Processes Cluster',
+	'HHAE_POLICY':'Human Health - Policy Cluster'
+    }
 
 
 import csv
