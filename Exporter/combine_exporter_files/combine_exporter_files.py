@@ -17,12 +17,7 @@ for f in files:
 for ft in file_types:
     files = exporter_path.glob(ft + '*.csv')
     combined_df = pd.concat( [ pd.read_csv(f) for f in files ] )
-    print(ft, combined_df.shape)
-    #print(combined_df.columns)
-    print(combined_df.info())
     combined_df = combined_df.drop_duplicates()
-    print(ft, combined_df.shape)
 
     outfile = output_path / (ft + '.csv')
-    print(outfile)
     combined_df.to_csv(outfile, index=False)
