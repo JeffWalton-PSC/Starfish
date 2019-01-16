@@ -49,6 +49,7 @@ tr_section_id = (lambda c: (c['EVENT_ID'] + '.' +
 df.loc[:, 'transfer_course_section_number'] = df.apply(tr_section_id, axis=1)
 df.loc[:, 'ag_grading_type'] = 'P/F'
 df.loc[:, 'ag_status'] = 'TRANSFER'
+df.loc[:, 'course_title'] = ''
 
 df = df.rename(columns={'PEOPLE_CODE_ID': 'student_integration_id',
                         'CREDIT': 'credits',
@@ -67,7 +68,7 @@ df = df[~df['ag_grade'].isnull()]
 df = df.loc[:, ['student_integration_id', 'transfer_course_number',
                 'transfer_course_section_number',
                 'ag_grade', 'ag_grading_type', 'ag_status',
-                'credits', ]]
+                'credits', 'course_title', ]]
 
 df = (df.sort_values(['student_integration_id', 
                       'transfer_course_section_number'])
