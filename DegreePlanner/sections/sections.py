@@ -18,7 +18,8 @@ sections_begin_year = '2011'
 sql_str = "SELECT * FROM SECTIONS WHERE " + \
           "EVENT_SUB_TYPE NOT IN ('ADV') " + \
           f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
-          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') " + \
+          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER', " + \
+          "'10-WEEK_1', '10-WEEK_2', '10-WEEK_3', '10-WEEK_4') " + \
           "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP'," + \
           " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
 df_sections = pd.read_sql_query(sql_str, connection)
@@ -120,7 +121,8 @@ df.to_csv(sfn_output, index=False)
 sql_str = "SELECT * FROM SECTIONPER WHERE " + \
           "EVENT_SUB_TYPE NOT IN ('ADV') " + \
           f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
-          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') " + \
+          "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER', " + \
+          "'10-WEEK_1', '10-WEEK_2', '10-WEEK_3', '10-WEEK_4') " + \
           "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP'," + \
           " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
 df_sectionper = pd.read_sql_query(sql_str, connection)
