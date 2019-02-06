@@ -144,7 +144,7 @@ sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_2', 'ACADEMIC_TERM'] = '10W2'
 sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_3', 'ACADEMIC_TERM'] = '10W3'
 sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_4', 'ACADEMIC_TERM'] = '10W4'
 
-dft = pd.merge(dfs, df_sectionper,
+dft = pd.merge(dfs, sp,
                on=['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
                    'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION'],
                how='left')
