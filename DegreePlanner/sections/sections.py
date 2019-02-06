@@ -49,6 +49,12 @@ crs_id = (lambda c: (str(c['EVENT_ID']).replace(' ', '') +
           )
 df.loc[:, 'course_id'] = df.apply(crs_id, axis=1)
 
+# shorten 10-Week term names
+df.loc[df['ACADEMIC_TERM']=='10-WEEK_1', 'ACADEMIC_TERM'] = '10W1'
+df.loc[df['ACADEMIC_TERM']=='10-WEEK_2', 'ACADEMIC_TERM'] = '10W2'
+df.loc[df['ACADEMIC_TERM']=='10-WEEK_3', 'ACADEMIC_TERM'] = '10W3'
+df.loc[df['ACADEMIC_TERM']=='10-WEEK_4', 'ACADEMIC_TERM'] = '10W4'
+
 df.loc[:, 'course_section_id'] = (df['EVENT_ID'] + '.' +
                                   df['EVENT_SUB_TYPE'] + '.' +
                                   df['ACADEMIC_YEAR'] + '.' +
@@ -131,6 +137,12 @@ sp = df_sectionper[['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
                     'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION',
                     'PERSON_CODE_ID',
                     ]]
+
+# shorten 10-Week term names
+sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_1', 'ACADEMIC_TERM'] = '10W1'
+sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_2', 'ACADEMIC_TERM'] = '10W2'
+sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_3', 'ACADEMIC_TERM'] = '10W3'
+sp.loc[sp['ACADEMIC_TERM']=='10-WEEK_4', 'ACADEMIC_TERM'] = '10W4'
 
 dft = pd.merge(dfs, df_sectionper,
                on=['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
