@@ -19,8 +19,7 @@ dfe = dfe.rename(columns={'EVENT_LONG_NAME': 'course_name',
                           'DESCRIPTION': 'description'})
 
 sql_str = "SELECT * FROM SECTIONS WHERE " + \
-          "EVENT_SUB_TYPE NOT IN ('ADV') " + \
-          f"AND ACADEMIC_YEAR >= '{sections_begin_year}' " + \
+          f"ACADEMIC_YEAR >= '{sections_begin_year}' " + \
           "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') " + \
           "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP'," + \
           " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
