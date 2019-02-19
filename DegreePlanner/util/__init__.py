@@ -14,15 +14,18 @@ def active_students():
 
     today = date.today()
     two_years_ago = today.year - 2
-    sql_str = "SELECT PEOPLE_CODE_ID FROM ACADEMIC WHERE " + \
-            f"ACADEMIC_YEAR > '{two_years_ago}' " + \
-            "AND PRIMARY_FLAG = 'Y' " + \
-            "AND CURRICULUM NOT IN ('ADVST') " + \
-            "AND GRADUATED NOT IN ('G') "
+    sql_str = (
+        "SELECT PEOPLE_CODE_ID FROM ACADEMIC WHERE "
+        + f"ACADEMIC_YEAR > '{two_years_ago}' "
+        + "AND PRIMARY_FLAG = 'Y' "
+        + "AND CURRICULUM NOT IN ('ADVST') "
+        + "AND GRADUATED NOT IN ('G') "
+    )
     active = pd.read_sql_query(sql_str, connection)
-    active = active.drop_duplicates(['PEOPLE_CODE_ID'])
+    active = active.drop_duplicates(["PEOPLE_CODE_ID"])
 
     return active
+
 
 def apply_active(in_df):
     """
@@ -34,6 +37,6 @@ def apply_active(in_df):
     active = active_students()
 
     # return records for active students
-    df = pd.merge(in_df, active, how='inner', on='PEOPLE_CODE_ID')
+    df = pd.merge(in_df, active, how="inner", on="PEOPLE_CODE_ID")
 
     return df
