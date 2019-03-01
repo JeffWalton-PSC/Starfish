@@ -21,8 +21,7 @@ sections_begin_year = "2011"
 sql_str = (
     "SELECT * FROM SECTIONS WHERE "
     + f"ACADEMIC_YEAR >= '{sections_begin_year}' "
-    + "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER', "
-    + "'10-WEEK_1', '10-WEEK_2', '10-WEEK_3', '10-WEEK_4') "
+    + "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') "
     + "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP',"
     + " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
 )
@@ -67,12 +66,6 @@ crs_id = (
     else (str(c["EVENT_ID"]).replace(" ", ""))
 )
 df.loc[:, "course_id"] = df.apply(crs_id, axis=1)
-
-# shorten 10-Week term names
-df.loc[df["ACADEMIC_TERM"] == "10-WEEK_1", "ACADEMIC_TERM"] = "10W1"
-df.loc[df["ACADEMIC_TERM"] == "10-WEEK_2", "ACADEMIC_TERM"] = "10W2"
-df.loc[df["ACADEMIC_TERM"] == "10-WEEK_3", "ACADEMIC_TERM"] = "10W3"
-df.loc[df["ACADEMIC_TERM"] == "10-WEEK_4", "ACADEMIC_TERM"] = "10W4"
 
 df.loc[:, "course_section_id"] = (
     df["EVENT_ID"]
@@ -167,8 +160,7 @@ df.to_csv(sfn_output, index=False)
 sql_str = (
     "SELECT * FROM SECTIONPER WHERE "
     + f"ACADEMIC_YEAR >= '{sections_begin_year}' "
-    + "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER', "
-    + "'10-WEEK_1', '10-WEEK_2', '10-WEEK_3', '10-WEEK_4') "
+    + "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') "
     + "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP',"
     + " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
 )
@@ -185,12 +177,6 @@ sp = df_sectionper[
         "PERSON_CODE_ID",
     ]
 ]
-
-# shorten 10-Week term names
-sp.loc[sp["ACADEMIC_TERM"] == "10-WEEK_1", "ACADEMIC_TERM"] = "10W1"
-sp.loc[sp["ACADEMIC_TERM"] == "10-WEEK_2", "ACADEMIC_TERM"] = "10W2"
-sp.loc[sp["ACADEMIC_TERM"] == "10-WEEK_3", "ACADEMIC_TERM"] = "10W3"
-sp.loc[sp["ACADEMIC_TERM"] == "10-WEEK_4", "ACADEMIC_TERM"] = "10W4"
 
 dft = pd.merge(
     dfs,
