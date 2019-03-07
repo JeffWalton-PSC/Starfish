@@ -47,8 +47,11 @@ df = util.latest_year_term(df)
 # create prereq group identifier
 df["prereq_group_identifier"] = "GPA_GT_2.0"
 
+# rename columns
+df = df.rename(columns={"PEOPLE_CODE_ID": "student_integration_id"})
+
 # columns to keep
-df = df.loc[:, ["student_integration_id", "prereq_group_identifier"]]
+df = df[["student_integration_id", "prereq_group_identifier"]]
 
 df = df.sort_values(
     ["student_integration_id", "prereq_group_identifier"]
