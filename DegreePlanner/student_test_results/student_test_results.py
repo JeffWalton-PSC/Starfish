@@ -38,8 +38,8 @@ df["numeric_score"] = df["CONVERTED_SCORE"].dropna().apply(np.int64)
 
 df["date_taken"] = df["TEST_DATE"].dt.strftime("%Y-%m-%d")
 
-# keep records for active students
-df = util.apply_active(in_df=df)
+# keep records for active students with email_address
+df = util.apply_active_with_email_address(in_df=df)
 
 df = df.rename(columns={"PEOPLE_CODE_ID": "student_integration_id"})
 

@@ -41,8 +41,8 @@ df_td = df_td[
     ]
 ]
 
-# keep transfer records for active students
-df = util.apply_active(in_df=df_td)
+# keep transfer records for active students with email_address
+df = util.apply_active_with_email_address(in_df=df_td)
 
 crs_id = (
     lambda c: (str(c["EVENT_ID"]).replace(" ", "") + str(c["EVENT_SUB_TYPE"]).upper())
