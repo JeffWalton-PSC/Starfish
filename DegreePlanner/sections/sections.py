@@ -1,3 +1,6 @@
+# Modifications:
+#   20190530 (JTW): remove SESSION from term_id
+
 import numpy as np
 import pandas as pd
 from datetime import date, datetime
@@ -82,14 +85,14 @@ df.loc[:, "integration_id"] = df.loc[:, "course_section_id"]
 
 term_id = (
     lambda c: (c["ACADEMIC_YEAR"] + "." + str(c["ACADEMIC_TERM"]).title())
-    if (c["ACADEMIC_SESSION"] == "MAIN")
-    else (
-        c["ACADEMIC_YEAR"]
-        + "."
-        + str(c["ACADEMIC_TERM"]).title()
-        + "."
-        + c["ACADEMIC_SESSION"]
-    )
+    # if (c["ACADEMIC_SESSION"] == "MAIN")
+    # else (
+    #     c["ACADEMIC_YEAR"]
+    #     + "."
+    #     + str(c["ACADEMIC_TERM"]).title()
+    #     + "."
+    #     + c["ACADEMIC_SESSION"]
+    # )
 )
 df.loc[:, "term_id"] = df.apply(term_id, axis=1)
 
