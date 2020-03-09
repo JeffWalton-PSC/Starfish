@@ -16,7 +16,6 @@ catalog_fn = catalog_path / "course_catalog.txt"
 
 # local connection information
 import local_db
-
 connection = local_db.connection()
 
 sections_begin_year = "2011"

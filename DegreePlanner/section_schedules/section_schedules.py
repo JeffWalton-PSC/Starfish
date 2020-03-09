@@ -16,7 +16,7 @@ connection = local_db.connection()
 today = date.today()
 today_str = today.strftime("%Y%m%d")
 
-sections_begin_year = "2011"
+sections_begin_year = "2015"
 
 sql_str = (
     "SELECT * FROM SECTIONSCHEDULE WHERE "
