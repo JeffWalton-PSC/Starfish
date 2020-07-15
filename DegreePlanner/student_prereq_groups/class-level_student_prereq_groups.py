@@ -1,6 +1,6 @@
 """
 Data file for Starfish's DegreePlanner.
-Creates pre-requisite groups based on class level (Freshman, Sophomore, Junior, Senior).
+Creates pre-requisite groups based on class level (Freshman, Sophomore, Junior, Senior, Grad).
 """
 import pandas as pd
 from datetime import date
@@ -77,6 +77,7 @@ df.loc[:, "prereq_group_identifier"] = "FRESHMAN"
 df.loc[(df["TOTAL_CREDITS"] >= 30), "prereq_group_identifier"] = "SOPHOMORE"
 df.loc[(df["TOTAL_CREDITS"] >= 60), "prereq_group_identifier"] = "JUNIOR"
 df.loc[(df["TOTAL_CREDITS"] >= 90), "prereq_group_identifier"] = "SENIOR"
+df.loc[(df["CLASS_LEVEL"] == 'GRAD'), "prereq_group_identifier"] = "GRAD"
 
 df = df.rename(columns={"PEOPLE_CODE_ID": "student_integration_id"})
 
