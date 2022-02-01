@@ -1,5 +1,8 @@
 # ignore output files
 *.txt
 
+# ignore jupyter notebooks
+*.ipynb
+
 # ignore .ipynb_checkpoints directory
 .ipynb_checkpoints/

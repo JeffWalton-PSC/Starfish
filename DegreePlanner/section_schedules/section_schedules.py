@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from datetime import date
+import datetime as dt
 from pathlib import Path
 
 output_path = Path(
@@ -13,10 +13,27 @@ import local_db
 
 connection = local_db.connection()
 
-today = date.today()
+today = dt.datetime.today()
 today_str = today.strftime("%Y%m%d")
 
 sections_begin_year = "2015"
+days_before_prereg_start = 7 * pd.offsets.Day()
+
+sql_str = (
+    "SELECT ACADEMIC_YEAR, ACADEMIC_TERM, PRE_REG_DATE "
+    + "FROM ACADEMICCALENDAR WHERE "
+    + f"ACADEMIC_YEAR >= '{sections_begin_year}' "
+    + "AND ACADEMIC_TERM IN ('FALL', 'SPRING', 'SUMMER') "
+    + "AND ACADEMIC_SESSION IN ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP', "
+    + " 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B') "
+)
+df_cal = pd.read_sql_query(sql_str, connection)
+
+df_cal = (
+    df_cal.groupby(['ACADEMIC_YEAR', 'ACADEMIC_TERM']).min()
+    .reset_index()
+)
+df_cal['after_start_display_section_schedule'] = (today >= (df_cal['PRE_REG_DATE'] - days_before_prereg_start))
 
 sql_str = (
     "SELECT * FROM SECTIONSCHEDULE WHERE "
@@ -52,6 +69,9 @@ df = df.loc[
     & (~df["BUILDING_CODE"].isin(["ONLINE"]))
     & (~df["BUILDING_CODE"].isnull())
 ]
+
+df = pd.merge(df, df_cal, on=["ACADEMIC_YEAR", "ACADEMIC_TERM"], how="left")
+df = df.loc[(df["after_start_display_section_schedule"]==True),:]
 
 df.loc[:, "section_integration_id"] = (
     df["EVENT_ID"]
