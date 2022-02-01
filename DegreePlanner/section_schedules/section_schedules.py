@@ -66,7 +66,7 @@ df = df[~(df["EVENT_ID"].str.contains("STDY", case=False))]
 df = df.loc[
     (~df["EVENT_SUB_TYPE"].isin(["ACE", "EXT", "ONLN"]))
     & (~df["DAY"].isin(["TBD", "ONLN", "CANC"]))
-    & (~df["BUILDING_CODE"].isin(["ONLINE"]))
+    # & (~df["BUILDING_CODE"].isin(["ONLINE"]))
     & (~df["BUILDING_CODE"].isnull())
 ]
 
